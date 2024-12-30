@@ -14,7 +14,7 @@
         "doctrine/dbal": "^4.2",
         "php-ds/php-ds": "^1.5",
         "react/async": "^4.3",
-        "react/mysql": "^0.6.0"
+        "react/mysql": "^0.7@dev"
     },
     "require-dev": {
         "laravel/pint": "^1.18.1",

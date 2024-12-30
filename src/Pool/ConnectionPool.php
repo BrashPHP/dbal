@@ -6,15 +6,14 @@ namespace Brash\Dbal\Pool;
 
 use React\EventLoop\LoopInterface;
 use React\Promise\Deferred;
-use React\Promise\Promise;
 use React\Promise\PromiseInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Doctrine\DBAL\Driver\Connection;
+use SplQueue;
 use function React\Async\{await, async};
 use function React\Promise\Timer\sleep as r_sleep;
 use function React\Promise\{resolve, reject};
-use DS\Set;
 
 /**
  * @implements ConnectionPoolInterface<Connection>
@@ -22,26 +21,16 @@ use DS\Set;
  */
 class ConnectionPool implements ConnectionPoolInterface
 {
-    /** @var Set<PoolItem<Connection>> */
-    private readonly Set $idle;
-
-    /** @var Set<PoolItem<Connection>> */
-    private readonly Set $locked;
-
-    /** @var ?Deferred<?PoolItem<Connection>> */
-    private ?Deferred $awaitingConnection = null;
+    /** @var \SplQueue<ConnectionItem> */
+    private SplQueue $idle;
 
     /** @var ?Deferred<null> */
     private readonly Deferred $onClose;
     private int $countPopAttempts;
     private bool $isClosed;
 
-    /**
-     * All pool items inside this pool
-     * @var \WeakMap<Connection,PoolItem>
-     */
+    /** @var \WeakMap<Connection,ConnectionItem> */
     private \WeakMap $connections;
-
 
     public function __construct(
         private readonly ConnectionFactory $factory,
@@ -49,8 +38,7 @@ class ConnectionPool implements ConnectionPoolInterface
         private LoggerInterface $loggerInterface,
         private LoopInterface $loopInterface
     ) {
-        $this->locked = new Set();
-        $this->idle = new Set();
+        $this->idle = new SplQueue();
         $this->connections = new \WeakMap();
         $this->onClose = new Deferred();
         $this->countPopAttempts = 0;
@@ -60,15 +48,23 @@ class ConnectionPool implements ConnectionPoolInterface
             $this->loggerInterface?->debug("Called discard connections");
             $now = \time();
             while (!$this->idle->isEmpty()) {
-                $connection = $this->idle->first();
+                /** @var PoolItem */
+                $connection = $this->idle->current();
+
+                if ($connection === null) {
+                    $this->idle->pop();
+                    continue;
+                }
 
                 if ($connection->getLastUsedAt() + $this->options->idleTimeout > $now) {
                     return;
                 }
 
                 // Close connection and remove it from the pool.
-                $this->idle->remove($connection);
+                /** @var ConnectionItem */
+                $connection = $this->idle->dequeue();
                 $connection->close();
+                $this->connections->offsetUnset($connection->item);
             }
         }));
 
@@ -80,7 +76,7 @@ class ConnectionPool implements ConnectionPoolInterface
 
     public function size(): int
     {
-        return $this->idle->count() + $this->locked->count();
+        return $this->connections->count();
     }
 
     public function extractConnection(array $params): Connection
@@ -123,9 +119,11 @@ class ConnectionPool implements ConnectionPoolInterface
     {
         $time = 0;
 
-        foreach ($this->locked as $connection) {
-            $lastUsedAt = $connection->getLastUsedAt();
-            $time = max($time, $lastUsedAt);
+        foreach ($this->connections as $connection) {
+            if ($connection->isLocked) {
+                $lastUsedAt = $connection->getLastUsedAt();
+                $time = max($time, $lastUsedAt);
+            }
         }
 
         return $time;
@@ -147,23 +145,12 @@ class ConnectionPool implements ConnectionPoolInterface
             return;
         }
 
-        foreach ($this->locked as $conn) {
-            $this->idle->add($conn);
+        foreach ($this->connections as $connection) {
+            $this->loopInterface->futureTick(fn() => $connection->close());
         }
 
-        $promises = [];
+        $this->isClosed = true;
 
-        foreach ($this->idle as $connection) {
-            $promises[] = new Promise(fn($resolve) => $resolve($connection->close()));
-        }
-
-        \React\Promise\all($promises)->then(function () {
-            $this->loggerInterface?->debug("Finished connections");
-        });
-
-        $this->onClose->promise()->then(function () {
-            $this->isClosed = true;
-        });
         $this->onClose->resolve(null);
     }
 
@@ -196,12 +183,10 @@ class ConnectionPool implements ConnectionPoolInterface
     {
         // Attempt to get an idle connection.
         while (!$this->idle->isEmpty()) {
-            $connection = $this->idle->first();
-            $this->idle->remove($connection);
+            $connection = $this->idle->dequeue();
 
             if (!$connection->isClosed()) {
-                $this->locked->add($connection);
-                $connection->setLastUsedAt(\time());
+                $connection->lock();
                 $this->resetAttemptsCounter();
 
                 return resolve($connection);
@@ -212,9 +197,9 @@ class ConnectionPool implements ConnectionPoolInterface
             $connection = $this->createConnection($params);
 
             if (!is_null($connection)) {
-                $this->loggerInterface?->debug("Connection created.");
+                $this->loggerInterface->debug("Connection created.");
 
-                $this->locked->add($connection);
+                $connection->lock();
                 $this->resetAttemptsCounter();
 
                 return resolve($connection);
@@ -230,7 +215,7 @@ class ConnectionPool implements ConnectionPoolInterface
         $maxRetries = $this->options->maxRetries;
         if (++$this->countPopAttempts >= $maxRetries) {
             $this->loggerInterface?->debug("Max attempts achieved");
-            
+
             $this->close();
 
             return new ConnectionPoolException(
@@ -252,18 +237,18 @@ class ConnectionPool implements ConnectionPoolInterface
     protected function push(PoolItem $connection): void
     {
         \assert(
-            $this->locked->contains($connection),
+            $this->connections->offsetExists($connection->item),
             "Connection is not part of this pool"
         );
 
-        $this->locked->remove($connection);
+        $connection->unlock();
 
         if (!$connection->isClosed()) {
-            $this->idle->add($connection);
+            $this->idle->enqueue($connection);
         }
-
-        $this->awaitingConnection?->resolve($connection);
-        $this->awaitingConnection = null;
+        else{
+            $this->connections->offsetUnset($connection->item);
+        }
     }
 
     /** @return PoolItem<Connection>|null */

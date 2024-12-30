@@ -30,6 +30,7 @@ abstract class PoolItem
     public function lock(): void
     {
         $this->isLocked = true;
+        $this->setLastUsedAt(\time());
     }
 
     public function unlock(): void

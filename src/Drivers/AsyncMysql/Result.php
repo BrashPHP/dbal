@@ -4,11 +4,11 @@ namespace Brash\Dbal\Drivers\AsyncMysql;
 
 use Doctrine\DBAL\Driver\FetchUtils;
 use Doctrine\DBAL\Driver\Result as DoctrineResult;
-use React\MySQL\QueryResult;
+use React\MySQL\MysqlResult;
 
 class Result implements DoctrineResult
 {
-    public function __construct(private ?QueryResult $result)
+    public function __construct(private ?MysqlResult $result)
     {
         $this->result = $result;
     }
@@ -25,7 +25,7 @@ class Result implements DoctrineResult
 
     public function fetchAssociative(): array|false
     {
-        return $this->result->resultRows ?? false;
+        return count($this->result->resultRows) ? array_pop($this->result->resultRows) : false;
     }
 
     public function fetchOne(): mixed
@@ -50,7 +50,7 @@ class Result implements DoctrineResult
 
     public function rowCount(): int
     {
-        return \count($this->result->resultRows);
+        return \count($this->result->resultRows ?? 0);
     }
 
     public function columnCount(): int
@@ -60,10 +60,6 @@ class Result implements DoctrineResult
 
     public function free(): void
     {
-        if (!$this->result instanceof \React\MySQL\QueryResult) {
-            return;
-        }
-
         $this->result = null;
     }
 }

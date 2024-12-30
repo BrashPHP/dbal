@@ -11,19 +11,16 @@ use Brash\Dbal\Observer\CompletionEmitter;
 use Doctrine\DBAL\Driver\Connection as DoctrineConnection;
 use Doctrine\DBAL\Driver\AbstractMySQLDriver;
 use React\EventLoop\LoopInterface;
-use React\MySQL\Factory;
+use React\MySQL\Io\Factory;
+use React\Mysql\MysqlClient;
 use React\Socket\ConnectorInterface;
+use function React\Async\await;
 
 class Driver extends AbstractMySQLDriver implements AcceptEmitterInterface
 {
-    private readonly Factory $factory;
 
     private ?CompletionEmitter $completionEmitter = null;
 
-    public function __construct(?LoopInterface $loop = null, ConnectorInterface $connector = null)
-    {
-        $this->factory = new Factory($loop, $connector);
-    }
 
     public function connect(
         #[\SensitiveParameter]
@@ -34,16 +31,19 @@ class Driver extends AbstractMySQLDriver implements AcceptEmitterInterface
         $user = $params['user'] ?? '';
         $password = $params['password'] ?? '';
         $dbName = $params['dbname'] ?? null;
-        $charset = $params['charset'] ?? "utf8mb4";
+        $options = [];
+        if (isset($params['charset'])) {
+            $options['charset'] = $params['charset'];
+        }
         $credentials = new Credentials(
             host: $host,
-            port: $port,
+            port: (string) $port,
             user: $user,
             password: $password,
             dbName: $dbName,
-            options: ['charset' => $charset]
+            options: $options
         );
-        $reactConnection = $this->factory->createLazyConnection($credentials->toString());
+        $reactConnection = new MysqlClient($credentials->toString());
 
         \assert($this->completionEmitter instanceof CompletionEmitter);
 

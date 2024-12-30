@@ -11,7 +11,7 @@ use Doctrine\DBAL\Driver\Result as DoctrineResult;
 use Doctrine\DBAL\Driver\Statement as DoctrineStatement;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Query;
-use React\MySQL\ConnectionInterface;
+use React\Mysql\MysqlClient;
 use function React\Async\await;
 use Doctrine\DBAL\Driver\Connection as DoctrineConnection;
 use Doctrine\DBAL\Driver\API\ExceptionConverter as ExceptionConverterInterface;
@@ -23,7 +23,7 @@ class Connection implements DoctrineConnection, ResultListenerInterface
     private readonly ExceptionConverterInterface $exceptionConverter;
 
     public function __construct(
-        private readonly ConnectionInterface $connection,
+        private readonly MysqlClient $connection,
         private readonly CompletionEmitter $completionEmitter
     ) {
         $this->exceptionConverter = new ExceptionConverter();
@@ -50,6 +50,9 @@ class Connection implements DoctrineConnection, ResultListenerInterface
     public function query(string $sql): DoctrineResult
     {
         try {
+            /**
+             * @var \React\Mysql\MysqlResult
+             */
             $result = await($this->connection->query($sql));
 
             $this->listen(new SqlResult(
@@ -62,6 +65,10 @@ class Connection implements DoctrineConnection, ResultListenerInterface
 
             return new Result($result);
         } catch (\Throwable $exception) {
+            $this->close();
+            var_dump($exception);
+
+
             throw $this->exceptionConverter->convert(new DoctrineException(
                 $exception->getMessage(),
                 null,
@@ -92,6 +99,10 @@ class Connection implements DoctrineConnection, ResultListenerInterface
 
             return $result->affectedRows;
         } catch (\Throwable $exception) {
+            $this->close();
+
+            var_dump($exception);
+            
             throw $this->exceptionConverter->convert(new DoctrineException(
                 $exception->getMessage(),
                 null,
@@ -124,7 +135,8 @@ class Connection implements DoctrineConnection, ResultListenerInterface
 
     public function getServerVersion(): string
     {
-        return $this->query("SELECT @@version")->fetchOne();
+        $values = array_values($this->query("SELECT @@version")->fetchOne());
+        return array_pop($values);
     }
 
     public function getNativeConnection(): object
@@ -134,6 +146,6 @@ class Connection implements DoctrineConnection, ResultListenerInterface
 
     public function close(): void
     {
-        return $this->connection->close();
+        $this->connection->close();
     }
 }

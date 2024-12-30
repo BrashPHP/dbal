@@ -8,7 +8,8 @@ use Brash\Dbal\Observer\SqlResult;
 use Doctrine\DBAL\Driver\PgSQL\Exception\UnknownParameter;
 use Doctrine\DBAL\Driver\Statement as DoctrineStatement;
 use Doctrine\DBAL\ParameterType;
-use React\MySQL\Io\Connection;
+use React\Mysql\Io\Connection;
+use React\Mysql\MysqlClient;
 use function React\Async\await;
 
 class Statement implements DoctrineStatement
@@ -26,7 +27,7 @@ class Statement implements DoctrineStatement
     private array $values = [];
     private array $types = [];
 
-    public function __construct(private readonly Connection $connection, private readonly string $sql, private readonly ResultListenerInterface $resultListener)
+    public function __construct(private readonly MysqlClient $connection, private readonly string $sql, private readonly ResultListenerInterface $resultListener)
     {
     }
 
@@ -71,9 +72,6 @@ class Statement implements DoctrineStatement
         }
 
         try {
-            /**
-             * @var \React\Promise\PromiseInterface<\React\MySQL\QueryResult>
-             */
             $promisedResult = $this->connection->query($this->sql, $values);
             $result = await($promisedResult);
             
