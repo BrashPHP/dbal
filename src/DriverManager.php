@@ -174,7 +174,7 @@ final class DriverManager
         return new $wrapperClass($params, $driver, $config);
     }
 
-    public static function setPoolOptions(ConnectionPoolOptions $connectionPoolOptions)
+    public static function setPoolOptions(ConnectionPoolOptions $connectionPoolOptions): void
     {
         self::$poolOptions = $connectionPoolOptions;
     }

@@ -25,7 +25,7 @@ class Result implements DoctrineResult
 
     public function fetchAssociative(): array|false
     {
-        return count($this->result->resultRows) ? array_pop($this->result->resultRows) : false;
+        return count($this->result->resultRows) > 0 ? array_pop($this->result->resultRows) : false;
     }
 
     public function fetchOne(): mixed
