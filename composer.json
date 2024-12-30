@@ -1,0 +1,60 @@
+{
+    "name": "brash/dbal",
+    "description": "A DBAL based on Doctrine DBAL and Drift/dbal",
+    "keywords": ["php", "dbal", "package"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Gabriel Berthier",
+            "email": "gabrielnberthier@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.3.0",
+        "doctrine/dbal": "^4.2",
+        "php-ds/php-ds": "^1.5",
+        "react/async": "^4.3",
+        "react/mysql": "^0.7@dev"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.18.1",
+        "pestphp/pest": "^3.5.1",
+        "pestphp/pest-plugin-type-coverage": "^3.1",
+        "phpstan/phpstan": "^1.12.7",
+        "rector/rector": "^1.2.8",
+        "symfony/var-dumper": "^7.1.6"
+    },
+    "autoload": {
+        "psr-4": {
+            "Brash\\Dbal\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "preferred-install": "dist",
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "scripts": {
+        "refacto": "rector",
+        "lint": "pint",
+        "test:refacto": "rector --dry-run",
+        "test:lint": "pint --test",
+        "test:types": "phpstan analyse --ansi",
+        "test:unit": "pest --colors=always --coverage --parallel --min=100",
+        "test": [
+            "@test:refacto",
+            "@test:lint",
+            "@test:types",
+            "@test:unit"
+        ]
+    }
+}
