@@ -8,6 +8,8 @@
     </p>
 </p> -->
 
+# Brash DBAL
+
 ---
 
 This is a DBAL on top of ReactPHP SQL clients and Doctrine DBAL. With this, you will be able to use
