@@ -47,7 +47,7 @@ class ConnectionPool implements ConnectionPoolInterface
         $timer = $this->loopInterface->addPeriodicTimer($options->discardIdleConnectionsIn, async(function () {
             $this->loggerInterface?->debug("Called discard connections");
             $now = \time();
-            while (!$this->idle->isEmpty()) {
+            while (!$this->idle->isEmpty() && $this->connections->count() >= $this->options->minConnections) {
                 /** @var PoolItem */
                 $connection = $this->idle->current();
 

@@ -13,9 +13,14 @@ final class ConnectionPoolOptions
         public int $idleTimeout = self::DEFAULT_IDLE_TIMEOUT,
         public int $maxRetries = 7,
         public int $discardIdleConnectionsIn = 1,
+        public int $minConnections = 1
     ) {
         if ($this->idleTimeout < 1) {
             throw new \Error("The idle timeout must be 1 or greater");
+        }
+        
+        if ($this->minConnections < 1) {
+            throw new \Error("Pool must contain at least one connection");
         }
 
         if ($this->maxConnections < 1) {
