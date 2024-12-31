@@ -1,7 +1,7 @@
 {
     "name": "brash/dbal",
     "description": "A DBAL based on Doctrine DBAL and Drift/dbal",
-    "keywords": ["php", "dbal", "package"],
+    "keywords": ["php", "dbal", "package", "reactphp", "async"],
     "license": "MIT",
     "authors": [
         {
@@ -12,7 +12,6 @@
     "require": {
         "php": "^8.3.0",
         "doctrine/dbal": "^4.2",
-        "php-ds/php-ds": "^1.5",
         "react/async": "^4.3",
         "react/mysql": "^0.7@dev"
     },

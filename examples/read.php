@@ -1,6 +1,7 @@
 <?php
 
 use Brash\Dbal\DriverManager;
+use Brash\Dbal\Pool\ConnectionPoolOptions;
 use React\EventLoop\Loop;
 use React\Promise\Promise;
 
@@ -19,15 +20,24 @@ $connectionParams = [
 $conn = DriverManager::getConnection($connectionParams);
 $conn2 = DriverManager::getConnection($connectionParams);
 
+DriverManager::setPoolOptions(new ConnectionPoolOptions(
+    maxConnections: 10,
+    idleTimeout: 2, # in seconds
+    maxRetries: 5,
+    discardIdleConnectionsIn: 5, # seconds
+    minConnections: 2,
+));
+
+
 React\Async\parallel([
     function () use ($conn) {
         return new Promise(function ($resolve) use ($conn) {
-            
-                $resolve($conn->executeQuery("select * from test"));
+
+            $resolve($conn->executeQuery("select * from test"));
         });
     },
-    function () use ($conn2){
-        return new Promise(function ($resolve) use ($conn2){
+    function () use ($conn2) {
+        return new Promise(function ($resolve) use ($conn2) {
             $resolve($conn2->executeQuery("select * from test"));
 
         });
