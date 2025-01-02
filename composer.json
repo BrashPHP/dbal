@@ -11,6 +11,7 @@
     ],
     "require": {
         "php": "^8.3.0",
+        "clue/reactphp-sqlite": "^1.6",
         "doctrine/dbal": "^4.2",
         "react/async": "^4.3",
         "react/mysql": "^0.7@dev",

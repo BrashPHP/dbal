@@ -6,6 +6,7 @@ namespace Brash\Dbal;
 
 use Brash\Dbal\Drivers\AsyncMysql\Driver as AsyncMysqlDriver;
 use Brash\Dbal\Drivers\AsyncPostgres\Driver as AsyncPostgresDriver;
+use Brash\Dbal\Drivers\AsyncSqlite\Driver as AsyncSqliteDriver;
 use Brash\Dbal\Pool\ConnectionPoolOptions;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
@@ -97,6 +98,7 @@ final class DriverManager
         'async_pg' => AsyncPostgresDriver::class,
         'async_postgres' => AsyncPostgresDriver::class,
         'async_mysql' => AsyncMysqlDriver::class,
+        'async_sqlite' => AsyncSqliteDriver::class,
     ];
 
     private static ?PoolMiddleware $poolMiddleware = null;

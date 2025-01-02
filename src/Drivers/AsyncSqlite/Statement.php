@@ -1,13 +1,13 @@
 <?php
 
-namespace Brash\Dbal\Drivers\AsyncMysql;
+namespace Brash\Dbal\Drivers\AsyncSqlite;
 
 use Brash\Dbal\Drivers\Exceptions\UnknownParameter;
 use Brash\Dbal\Observer\ResultListenerInterface;
 use Brash\Dbal\Observer\SqlResult;
+use Clue\React\SQLite\DatabaseInterface;
 use Doctrine\DBAL\Driver\Statement as DoctrineStatement;
 use Doctrine\DBAL\ParameterType;
-use React\Mysql\MysqlClient;
 
 use function React\Async\await;
 
@@ -27,7 +27,11 @@ class Statement implements DoctrineStatement
 
     private array $types = [];
 
-    public function __construct(private readonly MysqlClient $connection, private readonly string $sql, private readonly ResultListenerInterface $resultListener) {}
+    public function __construct(
+        private readonly DatabaseInterface $connection,
+        private readonly string $sql,
+        private readonly ResultListenerInterface $resultListener
+    ) {}
 
     #[\Override]
     public function bindValue($param, $value, $type = ParameterType::STRING): void
@@ -77,15 +81,15 @@ class Statement implements DoctrineStatement
 
             $this->resultListener->listen(new SqlResult(
                 $result->insertId,
-                $result->affectedRows,
-                $result->resultFields,
-                $result->resultRows,
-                $result->warningCount
+                $result->changed,
+                $result->columns,
+                $result->rows,
+                null
             ));
 
             return new Result($result);
         } catch (\Throwable $e) {
-            throw MysqlException::new($e);
+            throw SqliteException::new($e);
         }
     }
 
