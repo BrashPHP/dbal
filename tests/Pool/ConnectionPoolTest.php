@@ -88,6 +88,7 @@ it('should exhaust get connection and throw', function () {
     );
 
     $sut->extractConnection([]);
+    $sut->close();
 })->throws(ConnectionPoolException::class);
 
 it('should create only max number of connections', function () {
@@ -109,6 +110,7 @@ it('should create only max number of connections', function () {
         }
     }
 
+    $sut->close();
     expect($sut->size())->toBe($maxConnections);
 });
 

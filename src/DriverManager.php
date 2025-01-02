@@ -20,6 +20,8 @@ use Doctrine\DBAL\Driver\SQLSrv;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Connection;
 use Brash\Dbal\Drivers\AsyncMysql\Driver as AsyncMysqlDriver;
+use Psr\Log\LoggerInterface;
+use React\EventLoop\LoopInterface;
 use SensitiveParameter;
 
 use function array_keys;
@@ -95,8 +97,10 @@ final class DriverManager
         'async_mysql' => AsyncMysqlDriver::class,
     ];
 
-    private static ?AsyncMiddleware $asyncMiddleware = null;
+    private static ?PoolMiddleware $poolMiddleware = null;
     private static ?ConnectionPoolOptions $poolOptions = null;
+    private static ?LoopInterface $loop = null;
+    private static ?LoggerInterface $logger = null;
 
     /**
      * Private constructor. This class cannot be instantiated.
@@ -153,12 +157,14 @@ final class DriverManager
         $driver = self::createDriver($params['driver'] ?? null, $params['driverClass'] ?? null);
 
         if (str_starts_with($params['driver'], "async")) {
-            self::$asyncMiddleware ??= AsyncMiddleware::createSelf(
+            self::$poolMiddleware ??= PoolMiddleware::createSelf(
                 $driver,
-                self::$poolOptions
+                self::$poolOptions,
+                self::$logger,
+                self::$loop
             );
 
-            $config->setMiddlewares([...$config->getMiddlewares(), self::$asyncMiddleware]);
+            $config->setMiddlewares([...$config->getMiddlewares(), self::$poolMiddleware]);
         }
 
         foreach ($config->getMiddlewares() as $middleware) {
@@ -177,6 +183,16 @@ final class DriverManager
     public static function setPoolOptions(ConnectionPoolOptions $connectionPoolOptions): void
     {
         self::$poolOptions = $connectionPoolOptions;
+    }
+
+    public static function setLoop(LoopInterface $loopInterface): void
+    {
+        self::$loop = $loopInterface;
+    }
+
+    public static function setLogger(LoggerInterface $loggerInterface): void
+    {
+        self::$logger = $loggerInterface;
     }
 
     /**
