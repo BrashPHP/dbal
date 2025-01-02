@@ -66,6 +66,7 @@ DriverManager::setPoolOptions(new ConnectionPoolOptions(
     maxRetries: 5,
     discardIdleConnectionsIn: 5, # seconds
     minConnections: 2,
+    keepAliveIntervalSec: 0 # Disabled when 0
 ));
 
 DriverManager::getConnection([...]);

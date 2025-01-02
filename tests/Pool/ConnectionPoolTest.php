@@ -23,7 +23,7 @@ function generateInput(): ConnectionItem
     /** @var Connection|MockInterface */
     $mockConnection = spy(Connection::class);
     $mockConnection->shouldReceive('getNativeConnection')->withAnyArgs();
-    return new ConnectionItem($mockConnection);
+    return new ConnectionItem($mockConnection, new ConnectionPoolOptions());
 }
 
 function createFactory(): ConnectionFactory|MockInterface

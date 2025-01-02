@@ -15,12 +15,12 @@ class ConnectionFactory
     ) {
     }
 
-    public function create(array $params): ?ConnectionItem
+    public function create(array $params, ConnectionPoolOptions $connectionPoolOptions): ?ConnectionItem
     {
         try {
             $conn = $this->driver->connect($params);
 
-            return new ConnectionItem($conn);
+            return new ConnectionItem($conn, $connectionPoolOptions);
         } catch (\Throwable $th) {
             $this->loggerInterface->alert($th->getMessage(), [
                 'database_error' => $th,

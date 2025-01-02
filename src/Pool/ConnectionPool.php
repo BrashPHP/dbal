@@ -258,7 +258,10 @@ class ConnectionPool implements ConnectionPoolInterface
             return null;
         }
 
-        $connection = $this->factory->create($params);
+        $connection = $this->factory->create(
+            $params,
+            $this->options
+        );
 
         if (is_null($connection)) {
             return null;

@@ -10,11 +10,7 @@ use Brash\Dbal\Observer\AcceptEmitterInterface;
 use Brash\Dbal\Observer\CompletionEmitter;
 use Doctrine\DBAL\Driver\Connection as DoctrineConnection;
 use Doctrine\DBAL\Driver\AbstractMySQLDriver;
-use React\EventLoop\LoopInterface;
-use React\MySQL\Io\Factory;
 use React\Mysql\MysqlClient;
-use React\Socket\ConnectorInterface;
-use function React\Async\await;
 
 class Driver extends AbstractMySQLDriver implements AcceptEmitterInterface
 {
