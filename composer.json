@@ -13,7 +13,9 @@
         "php": "^8.3.0",
         "doctrine/dbal": "^4.2",
         "react/async": "^4.3",
-        "react/mysql": "^0.7@dev"
+        "react/mysql": "^0.7@dev",
+        "react/promise": "^3.2",
+        "voryx/pgasync": "^2.0"
     },
     "require-dev": {
         "laravel/pint": "^1.18.1",

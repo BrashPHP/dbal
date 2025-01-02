@@ -16,14 +16,17 @@ $connectionParams = [
 $conn = DriverManager::getConnection($connectionParams);
 
 $schema = new \Doctrine\DBAL\Schema\Schema;
-$table = $schema->createTable('test');
-$table->addColumn('id', 'integer', ['unsigned' => true]);
-$table->setPrimaryKey(['id']);
-$table->addColumn('username', 'string', ['length' => 32]);
+$tableName = 'test';
+$sm = $conn->createSchemaManager();
+if (! $schema->hasTable($tableName) && ! in_array($tableName, $sm->listTableNames())) {
+    $table = $schema->createTable($tableName);
+    $table->addColumn('id', 'integer', ['unsigned' => true])->setAutoincrement(true);
+    $table->setPrimaryKey(['id']);
+    $table->addColumn('username', 'string', ['length' => 32]);
 
-$conn->executeStatement(implode(';', $schema->toSql($conn->getDatabasePlatform())));
+    $conn->executeStatement(implode(';', $schema->toSql($conn->getDatabasePlatform())));
+}
 
-$conn->insert('test', [
-    'id' => 1,
+$conn->insert($tableName, [
     'username' => 'elgabo',
 ]);

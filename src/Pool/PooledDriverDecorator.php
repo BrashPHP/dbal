@@ -14,6 +14,11 @@ class PooledDriverDecorator implements Driver
         private readonly ConnectionPoolInterface $connectionPoolInterface
     ) {}
 
+    public function getDecorated(): Driver
+    {
+        return $this->decorated;
+    }
+
     public function connect(array $params): Connection
     {
         return $this->connectionPoolInterface->extractConnection($params);

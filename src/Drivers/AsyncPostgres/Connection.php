@@ -1,19 +1,18 @@
 <?php
 
-namespace Brash\Dbal\Drivers\AsyncMysql;
+namespace Brash\Dbal\Drivers\AsyncPostgres;
 
 use Brash\Dbal\DoctrineException;
 use Brash\Dbal\Observer\CompletionEmitter;
 use Brash\Dbal\Observer\ResultListenerInterface;
 use Brash\Dbal\Observer\SqlResult;
 use Doctrine\DBAL\Driver\API\ExceptionConverter as ExceptionConverterInterface;
-use Doctrine\DBAL\Driver\API\MySQL\ExceptionConverter;
+use Doctrine\DBAL\Driver\API\PostgreSQL\ExceptionConverter;
 use Doctrine\DBAL\Driver\Connection as DoctrineConnection;
 use Doctrine\DBAL\Driver\Result as DoctrineResult;
 use Doctrine\DBAL\Driver\Statement as DoctrineStatement;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Query;
-use React\Mysql\MysqlClient;
 
 use function React\Async\await;
 
@@ -23,11 +22,19 @@ class Connection implements DoctrineConnection, ResultListenerInterface
 
     private readonly ExceptionConverterInterface $exceptionConverter;
 
+    private readonly SubscriptionPromiseBridge $bridge;
+
     public function __construct(
-        private readonly MysqlClient $connection,
+        private readonly \PgAsync\Connection $connection,
         private readonly CompletionEmitter $completionEmitter
     ) {
         $this->exceptionConverter = new ExceptionConverter;
+        $this->bridge = new SubscriptionPromiseBridge($this);
+    }
+
+    public function getExceptionConverter(): ExceptionConverter
+    {
+        return $this->exceptionConverter;
     }
 
     #[\Override]
@@ -46,7 +53,7 @@ class Connection implements DoctrineConnection, ResultListenerInterface
                 $this
             );
         } catch (\Throwable $e) {
-            throw MysqlException::new($e);
+            throw PostgresException::new($e);
         }
     }
 
@@ -55,16 +62,16 @@ class Connection implements DoctrineConnection, ResultListenerInterface
     {
         try {
             /**
-             * @var \React\Mysql\MysqlResult
+             * @var Result
              */
-            $result = await($this->connection->query($sql));
+            $result = await($this->bridge->bridge($sql));
 
             $this->listen(new SqlResult(
-                $result->insertId,
-                $result->affectedRows,
-                $result->resultFields,
-                $result->resultRows,
-                $result->warningCount
+                null,
+                $result->rowCount(),
+                null,
+                $result->fetchAllAssociative(),
+                null
             ));
 
             return new Result($result);
@@ -92,17 +99,17 @@ class Connection implements DoctrineConnection, ResultListenerInterface
     public function exec(string $sql): int
     {
         try {
-            $result = await($this->connection->query($sql));
+            $result = await($this->bridge->bridge($sql));
 
             $this->listen(new SqlResult(
-                $result->insertId,
-                $result->affectedRows,
-                $result->resultFields,
-                $result->resultRows,
-                $result->warningCount
+                null,
+                $result->rowCount(),
+                null,
+                $result->fetchAllAssociative(),
+                null
             ));
 
-            return $result->affectedRows;
+            return $result->rowCount();
         } catch (\Throwable $exception) {
             $this->close();
 
@@ -149,13 +156,13 @@ class Connection implements DoctrineConnection, ResultListenerInterface
     }
 
     #[\Override]
-    public function getNativeConnection(): object
+    public function getNativeConnection(): \PgAsync\Connection
     {
         return $this->connection;
     }
 
     public function close(): void
     {
-        $this->connection->close();
+        $this->connection->disconnect();
     }
 }
