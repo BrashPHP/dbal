@@ -56,7 +56,7 @@ class Result implements DoctrineResult
     #[\Override]
     public function rowCount(): int
     {
-        return \count($this->result->resultRows ?? 0);
+        return $this->result->changed;
     }
 
     #[\Override]
