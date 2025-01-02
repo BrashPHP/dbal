@@ -7,14 +7,12 @@ namespace Brash\Dbal\Pool;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\Connection;
 
-
 class PooledDriverDecorator implements Driver
 {
     public function __construct(
         private readonly Driver $decorated,
         private readonly ConnectionPoolInterface $connectionPoolInterface
-    ) {
-    }
+    ) {}
 
     public function connect(array $params): Connection
     {

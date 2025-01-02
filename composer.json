@@ -51,7 +51,6 @@
         "test:types": "phpstan analyse --ansi",
         "test:unit": "pest --colors=always --parallel --min=100",
         "test": [
-            "@test:refacto",
             "@test:lint",
             "@test:types",
             "@test:unit"

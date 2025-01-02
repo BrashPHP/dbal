@@ -10,6 +10,7 @@ use React\EventLoop\TimerInterface;
 
 /**
  * @template-extends PoolItem<Connection>
+ *
  * @extends parent<Connection>
  */
 final class ConnectionItem extends PoolItem
@@ -25,7 +26,7 @@ final class ConnectionItem extends PoolItem
             $this->keepAliveTimer = Loop::get()->addPeriodicTimer(
                 $connectionPoolOptions->keepAliveIntervalSec,
                 function () use ($connection) {
-                    $connection->query("SELECT 1");
+                    $connection->query('SELECT 1');
                 }
             );
         }
@@ -39,6 +40,7 @@ final class ConnectionItem extends PoolItem
         }
         $this->item->getNativeConnection()?->close();
     }
+
     public function validate(): bool
     {
         return $this->item instanceof Connection;

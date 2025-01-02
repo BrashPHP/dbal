@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Brash\Dbal;
 
-use Brash\Dbal\Pool\ConnectionPoolInterface;
-use Brash\Dbal\Pool\ConnectionPoolOptions;
-use Brash\Dbal\Pool\PooledDriverDecorator;
 use Brash\Dbal\Observer\AcceptEmitterInterface;
 use Brash\Dbal\Observer\CompletionEmitter;
 use Brash\Dbal\Observer\CompletionObserverInterface;
+use Brash\Dbal\Pool\ConnectionPoolInterface;
+use Brash\Dbal\Pool\ConnectionPoolOptions;
+use Brash\Dbal\Pool\PooledDriverDecorator;
 use Brash\Dbal\Pool\PoolFactory;
+use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\Connection;
 use Doctrine\DBAL\Driver\Middleware;
-use Doctrine\DBAL\Driver;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\LoopInterface;
 
@@ -24,16 +24,14 @@ final readonly class PoolMiddleware implements Middleware
         private ConnectionPoolInterface $poolInterface
     ) {
         $completionEmitter->includeObserver(
-            new class ($poolInterface) implements CompletionObserverInterface {
-
-            public function __construct(private readonly ConnectionPoolInterface $connectionPoolInterface)
+            new class($poolInterface) implements CompletionObserverInterface
             {
-            }
+                public function __construct(private readonly ConnectionPoolInterface $connectionPoolInterface) {}
 
-            public function update(Connection $connection): void
-            {
-                $this->connectionPoolInterface->returnConnection($connection);
-            }
+                public function update(Connection $connection): void
+                {
+                    $this->connectionPoolInterface->returnConnection($connection);
+                }
             }
         );
     }
@@ -44,14 +42,15 @@ final readonly class PoolMiddleware implements Middleware
         ?LoggerInterface $loggerInterface = null,
         ?LoopInterface $loopInterface = null
     ): self {
-        $connectionPool = (new PoolFactory())->createPool(
+        $connectionPool = (new PoolFactory)->createPool(
             $driver,
             $connectionPoolOptions,
             $loggerInterface,
             $loopInterface
         );
+
         return new self(
-            new CompletionEmitter(),
+            new CompletionEmitter,
             $connectionPool
         );
     }

@@ -16,8 +16,7 @@ final readonly class Credentials
          * @var array<string,string> $options
          */
         public array $options = []
-    ) {
-    }
+    ) {}
 
     public function toString(): string
     {
@@ -31,7 +30,7 @@ final readonly class Credentials
         );
 
         if ($this->options !== []) {
-            $asString .= "?" . \http_build_query($this->options);
+            $asString .= '?'.\http_build_query($this->options);
         }
 
         if (str_starts_with($asString, ':@')) {

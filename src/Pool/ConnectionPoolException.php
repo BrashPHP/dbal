@@ -4,7 +4,4 @@ declare(strict_types=1);
 
 namespace Brash\Dbal\Pool;
 
-class ConnectionPoolException extends \RuntimeException
-{
-
-}
+class ConnectionPoolException extends \RuntimeException {}

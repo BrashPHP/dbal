@@ -7,6 +7,7 @@ namespace Tests\Helpers;
 use Mockery\MockInterface;
 use React\EventLoop\LoopInterface;
 
-function createMockLoopInterface(): MockInterface|LoopInterface {
+function createMockLoopInterface(): MockInterface|LoopInterface
+{
     return mock(LoopInterface::class);
 }

@@ -6,7 +6,6 @@ namespace Brash\Dbal\Pool;
 
 use Doctrine\DBAL\Driver\Connection;
 
-
 interface ConnectionPoolInterface
 {
     public function extractConnection(array $params): Connection;

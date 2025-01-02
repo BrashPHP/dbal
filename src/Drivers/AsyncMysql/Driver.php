@@ -5,19 +5,17 @@ declare(strict_types=1);
 namespace Brash\Dbal\Drivers\AsyncMysql;
 
 use Brash\Dbal\Credentials;
-use Brash\Dbal\Drivers\AsyncMysql\Connection;
 use Brash\Dbal\Observer\AcceptEmitterInterface;
 use Brash\Dbal\Observer\CompletionEmitter;
-use Doctrine\DBAL\Driver\Connection as DoctrineConnection;
 use Doctrine\DBAL\Driver\AbstractMySQLDriver;
+use Doctrine\DBAL\Driver\Connection as DoctrineConnection;
 use React\Mysql\MysqlClient;
 
 class Driver extends AbstractMySQLDriver implements AcceptEmitterInterface
 {
-
     private ?CompletionEmitter $completionEmitter = null;
 
-
+    #[\Override]
     public function connect(
         #[\SensitiveParameter]
         array $params,
@@ -49,6 +47,7 @@ class Driver extends AbstractMySQLDriver implements AcceptEmitterInterface
         );
     }
 
+    #[\Override]
     public function accept(CompletionEmitter $completionEmitter): void
     {
         $this->completionEmitter = $completionEmitter;

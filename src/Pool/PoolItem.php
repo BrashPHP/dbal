@@ -10,12 +10,13 @@ namespace Brash\Dbal\Pool;
 abstract class PoolItem
 {
     private int $lastUsedAt;
+
     private bool $isClosed = false;
 
     public bool $isLocked = false;
 
     /**
-     * @param T $item
+     * @param  T  $item
      */
     public function __construct(public readonly object $item)
     {
@@ -33,8 +34,8 @@ abstract class PoolItem
         $this->isLocked = false;
     }
 
-
     abstract protected function onClose(): void;
+
     abstract public function validate(): bool;
 
     public function close(): void

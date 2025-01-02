@@ -1,25 +1,23 @@
 <?php
 
-use Brash\Dbal\PoolMiddleware;
+use Brash\Dbal\Observer\AcceptEmitterInterface;
+use Brash\Dbal\Observer\CompletionEmitter;
 use Brash\Dbal\Pool\ConnectionPoolInterface;
 use Brash\Dbal\Pool\ConnectionPoolOptions;
 use Brash\Dbal\Pool\PooledDriverDecorator;
-use Brash\Dbal\Observer\CompletionEmitter;
-use Brash\Dbal\Observer\AcceptEmitterInterface;
+use Brash\Dbal\PoolMiddleware;
 use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\Connection;
 use React\EventLoop\LoopInterface;
 use React\EventLoop\Timer\Timer;
 
-
-
 it('can create itself using a driver and optional pool options', function () {
     $driver = mock(Driver::class);
-    $connectionPoolOptions = new ConnectionPoolOptions();
+    $connectionPoolOptions = new ConnectionPoolOptions;
 
     /** @var LoopInterface|\Mockery\MockInterface */
     $loopInterface = mock(LoopInterface::class);
-    $timer = new Timer(0, fn() => null);
+    $timer = new Timer(0, fn () => null);
     $loopInterface->shouldReceive('cancelTimer')->withAnyArgs();
 
     $loopInterface->shouldReceive('addPeriodicTimer')->andReturn($timer);
@@ -33,7 +31,7 @@ it('can create itself using a driver and optional pool options', function () {
 });
 
 it('returns a pooled driver decorator if the driver accepts emitters', function () {
-    $completionEmitter = new CompletionEmitter();
+    $completionEmitter = new CompletionEmitter;
     $poolInterface = mock(ConnectionPoolInterface::class);
     $driver = mock(AcceptEmitterInterface::class, Driver::class);
     $driver->shouldReceive('accept')->with($completionEmitter)->once();
@@ -46,7 +44,7 @@ it('returns a pooled driver decorator if the driver accepts emitters', function 
 });
 
 it('returns the original driver if it does not accept emitters', function () {
-    $completionEmitter = new CompletionEmitter();
+    $completionEmitter = new CompletionEmitter;
     $poolInterface = mock(ConnectionPoolInterface::class);
     $driver = mock(Driver::class);
 
@@ -59,7 +57,7 @@ it('returns the original driver if it does not accept emitters', function () {
 
 it('returns connections to the pool upon completion', function () {
     $poolInterface = mock(ConnectionPoolInterface::class);
-    $completionEmitter = new CompletionEmitter();
+    $completionEmitter = new CompletionEmitter;
 
     $middleware = new PoolMiddleware($completionEmitter, $poolInterface);
 

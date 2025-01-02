@@ -12,8 +12,7 @@ class ConnectionFactory
     public function __construct(
         private Driver $driver,
         private LoggerInterface $loggerInterface
-    ) {
-    }
+    ) {}
 
     public function create(array $params, ConnectionPoolOptions $connectionPoolOptions): ?ConnectionItem
     {
@@ -24,9 +23,9 @@ class ConnectionFactory
         } catch (\Throwable $th) {
             $this->loggerInterface->alert($th->getMessage(), [
                 'database_error' => $th,
-                'database_error_trace' => $th->getTrace()
+                'database_error_trace' => $th->getTrace(),
             ]);
-        
+
             return null;
         }
     }

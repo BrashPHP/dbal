@@ -5,25 +5,24 @@ declare(strict_types=1);
 namespace Tests\Pool;
 
 use Brash\Dbal\Pool\ConnectionFactory;
-use Brash\Dbal\Pool\ConnectionPool;
 use Brash\Dbal\Pool\ConnectionItem;
+use Brash\Dbal\Pool\ConnectionPool;
 use Brash\Dbal\Pool\ConnectionPoolException;
 use Brash\Dbal\Pool\ConnectionPoolOptions;
-use Brash\Dbal\Pool\PoolItem;
+use Doctrine\DBAL\Driver\Connection;
 use Mockery\MockInterface;
 use Psr\Log\NullLogger;
 use React\EventLoop\Loop;
 use React\EventLoop\LoopInterface;
-use Doctrine\DBAL\Driver\Connection;
 use React\EventLoop\Timer\Timer;
-
 
 function generateInput(): ConnectionItem
 {
     /** @var Connection|MockInterface */
     $mockConnection = spy(Connection::class);
     $mockConnection->shouldReceive('getNativeConnection')->withAnyArgs();
-    return new ConnectionItem($mockConnection, new ConnectionPoolOptions());
+
+    return new ConnectionItem($mockConnection, new ConnectionPoolOptions);
 }
 
 function createFactory(): ConnectionFactory|MockInterface
@@ -32,26 +31,26 @@ function createFactory(): ConnectionFactory|MockInterface
      * @var ConnectionFactory|\Mockery\MockInterface
      */
     $connectionFactory = mock(ConnectionFactory::class);
-    $items = array_map(fn() => generateInput(), range(1, 25));
+    $items = array_map(fn () => generateInput(), range(1, 25));
     $connectionFactory->shouldReceive('create')->andReturn(array_shift($items), ...$items);
 
     return $connectionFactory;
 }
 
-function createSut(ConnectionFactory $connectionFactory = null): ConnectionPool
+function createSut(?ConnectionFactory $connectionFactory = null): ConnectionPool
 {
     $connectionFactory ??= createFactory();
-    $loggerInterface = new NullLogger();
+    $loggerInterface = new NullLogger;
     /** @var \Mockery\MockInterface|LoopInterface */
     $loopInterface = mock(LoopInterface::class);
 
-    $timer = new Timer(0, fn()=>null);
+    $timer = new Timer(0, fn () => null);
     $loopInterface->shouldReceive('addPeriodicTimer')->withAnyArgs()->andReturn($timer);
     $loopInterface->shouldReceive('addTimer')->withAnyArgs()->andReturn($timer);
     $loopInterface->shouldReceive('futureTick')->withAnyArgs();
     $loopInterface->shouldReceive('cancelTimer')->withAnyArgs();
 
-    $connectionOptions = new ConnectionPoolOptions();
+    $connectionOptions = new ConnectionPoolOptions;
 
     return new ConnectionPool(
         $connectionFactory,
@@ -69,7 +68,6 @@ afterEach(function () {
     $this->sut->close();
 });
 
-
 it('should receive valid connection', function () {
     $poolItem = $this->sut->extractConnection([]);
 
@@ -82,8 +80,8 @@ it('should exhaust get connection and throw', function () {
     $factoryMock->shouldReceive('create')->andReturn(null);
     $sut = new ConnectionPool(
         $factoryMock,
-        new ConnectionPoolOptions(),
-        new NullLogger(),
+        new ConnectionPoolOptions,
+        new NullLogger,
         Loop::get()
     );
 
@@ -94,7 +92,7 @@ it('should exhaust get connection and throw', function () {
 it('should create only max number of connections', function () {
     /** @var \Mockery\MockInterface|ConnectionFactory */
     $connectionFactory = mock(ConnectionFactory::class);
-    $items = array_map(fn($el) => generateInput(), range(1, 115));
+    $items = array_map(fn ($el) => generateInput(), range(1, 115));
     $connectionFactory->shouldReceive('create')->andReturn(array_shift($items), ...$items);
     $sut = createSut($connectionFactory);
     $maxConnections = $sut->getConnectionLimit();
@@ -131,11 +129,11 @@ it('should reset get counter', function () {
     /** @var \Mockery\MockInterface|ConnectionFactory */
     $defaultFactory = mock(ConnectionFactory::class);
     $defaultFactory->shouldReceive('create')->andReturnValues([null, null, generateInput()]);
-    
+
     $sut = new ConnectionPool(
         $defaultFactory,
-        new ConnectionPoolOptions(),
-        new NullLogger(),
+        new ConnectionPoolOptions,
+        new NullLogger,
         Loop::get()
     );
 

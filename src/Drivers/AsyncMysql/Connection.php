@@ -6,34 +6,37 @@ use Brash\Dbal\DoctrineException;
 use Brash\Dbal\Observer\CompletionEmitter;
 use Brash\Dbal\Observer\ResultListenerInterface;
 use Brash\Dbal\Observer\SqlResult;
+use Doctrine\DBAL\Driver\API\ExceptionConverter as ExceptionConverterInterface;
 use Doctrine\DBAL\Driver\API\MySQL\ExceptionConverter;
+use Doctrine\DBAL\Driver\Connection as DoctrineConnection;
 use Doctrine\DBAL\Driver\Result as DoctrineResult;
 use Doctrine\DBAL\Driver\Statement as DoctrineStatement;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Query;
 use React\Mysql\MysqlClient;
-use function React\Async\await;
-use Doctrine\DBAL\Driver\Connection as DoctrineConnection;
-use Doctrine\DBAL\Driver\API\ExceptionConverter as ExceptionConverterInterface;
 
+use function React\Async\await;
 
 class Connection implements DoctrineConnection, ResultListenerInterface
 {
-    private int|null $lastInsertId = null;
+    private ?int $lastInsertId = null;
+
     private readonly ExceptionConverterInterface $exceptionConverter;
 
     public function __construct(
         private readonly MysqlClient $connection,
         private readonly CompletionEmitter $completionEmitter
     ) {
-        $this->exceptionConverter = new ExceptionConverter();
+        $this->exceptionConverter = new ExceptionConverter;
     }
 
+    #[\Override]
     public function listen(SqlResult $result): void
     {
         $this->lastInsertId = $result->insertId;
     }
 
+    #[\Override]
     public function prepare(string $sql): DoctrineStatement
     {
         try {
@@ -47,6 +50,7 @@ class Connection implements DoctrineConnection, ResultListenerInterface
         }
     }
 
+    #[\Override]
     public function query(string $sql): DoctrineResult
     {
         try {
@@ -68,7 +72,6 @@ class Connection implements DoctrineConnection, ResultListenerInterface
             $this->close();
             var_dump($exception);
 
-
             throw $this->exceptionConverter->convert(new DoctrineException(
                 $exception->getMessage(),
                 null,
@@ -79,11 +82,13 @@ class Connection implements DoctrineConnection, ResultListenerInterface
         }
     }
 
+    #[\Override]
     public function quote($value, $type = ParameterType::STRING): string
     {
-        throw new \Error("Not implemented, use prepared statements");
+        throw new \Error('Not implemented, use prepared statements');
     }
 
+    #[\Override]
     public function exec(string $sql): int
     {
         try {
@@ -102,7 +107,7 @@ class Connection implements DoctrineConnection, ResultListenerInterface
             $this->close();
 
             var_dump($exception);
-            
+
             throw $this->exceptionConverter->convert(new DoctrineException(
                 $exception->getMessage(),
                 null,
@@ -113,32 +118,39 @@ class Connection implements DoctrineConnection, ResultListenerInterface
         }
     }
 
+    #[\Override]
     public function lastInsertId($name = null): int|string
     {
         return $this->lastInsertId;
     }
 
+    #[\Override]
     public function beginTransaction(): void
     {
         $this->query('START TRANSACTION');
     }
 
+    #[\Override]
     public function commit(): void
     {
         $this->query('COMMIT');
     }
 
+    #[\Override]
     public function rollBack(): void
     {
         $this->query('ROLLBACK');
     }
 
+    #[\Override]
     public function getServerVersion(): string
     {
-        $values = array_values($this->query("SELECT @@version")->fetchOne());
+        $values = array_values($this->query('SELECT @@version')->fetchOne());
+
         return array_pop($values);
     }
 
+    #[\Override]
     public function getNativeConnection(): object
     {
         return $this->connection;

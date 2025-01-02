@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Brash\Dbal;
 
+use Brash\Dbal\Drivers\AsyncMysql\Driver as AsyncMysqlDriver;
 use Brash\Dbal\Pool\ConnectionPoolOptions;
 use Doctrine\DBAL\Configuration;
-use Doctrine\DBAL\Exception\DriverRequired;
-use Doctrine\DBAL\Exception\InvalidDriverClass;
-use Doctrine\DBAL\Exception\InvalidWrapperClass;
-use Doctrine\DBAL\Exception\UnknownDriver;
+use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Driver\IBMDB2;
 use Doctrine\DBAL\Driver\Mysqli;
 use Doctrine\DBAL\Driver\OCI8;
@@ -17,9 +16,10 @@ use Doctrine\DBAL\Driver\PDO;
 use Doctrine\DBAL\Driver\PgSQL;
 use Doctrine\DBAL\Driver\SQLite3;
 use Doctrine\DBAL\Driver\SQLSrv;
-use Doctrine\DBAL\Driver;
-use Doctrine\DBAL\Connection;
-use Brash\Dbal\Drivers\AsyncMysql\Driver as AsyncMysqlDriver;
+use Doctrine\DBAL\Exception\DriverRequired;
+use Doctrine\DBAL\Exception\InvalidDriverClass;
+use Doctrine\DBAL\Exception\InvalidWrapperClass;
+use Doctrine\DBAL\Exception\UnknownDriver;
 use Psr\Log\LoggerInterface;
 use React\EventLoop\LoopInterface;
 use SensitiveParameter;
@@ -98,8 +98,11 @@ final class DriverManager
     ];
 
     private static ?PoolMiddleware $poolMiddleware = null;
+
     private static ?ConnectionPoolOptions $poolOptions = null;
+
     private static ?LoopInterface $loop = null;
+
     private static ?LoggerInterface $logger = null;
 
     /**
@@ -107,9 +110,7 @@ final class DriverManager
      *
      * @codeCoverageIgnore
      */
-    private function __construct()
-    {
-    }
+    private function __construct() {}
 
     /**
      * Creates a connection object based on the specified parameters.
@@ -141,7 +142,8 @@ final class DriverManager
      * <b>driverClass</b>:
      * The driver class to use.
      *
-     * @param Configuration|null $config The configuration to use.
+     * @param  Configuration|null  $config  The configuration to use.
+     *
      * @psalm-param Params $params
      *
      * @psalm-return ($params is array{wrapperClass: class-string<T>} ? T : Connection)
@@ -153,10 +155,10 @@ final class DriverManager
         array $params,
         ?Configuration $config = null,
     ): Connection {
-        $config ??= new Configuration();
+        $config ??= new Configuration;
         $driver = self::createDriver($params['driver'] ?? null, $params['driverClass'] ?? null);
 
-        if (str_starts_with($params['driver'], "async")) {
+        if (str_starts_with($params['driver'], 'async')) {
             self::$poolMiddleware ??= PoolMiddleware::createSelf(
                 $driver,
                 self::$poolOptions,
@@ -173,7 +175,7 @@ final class DriverManager
 
         /** @var class-string<Connection> $wrapperClass */
         $wrapperClass = $params['wrapperClass'] ?? Connection::class;
-        if (!is_a($wrapperClass, Connection::class, true)) {
+        if (! is_a($wrapperClass, Connection::class, true)) {
             throw InvalidWrapperClass::new($wrapperClass);
         }
 
@@ -199,6 +201,7 @@ final class DriverManager
      * Returns the list of supported drivers.
      *
      * @return string[]
+     *
      * @psalm-return list<key-of<self::DRIVER_MAP>>
      */
     public static function getAvailableDrivers(): array
@@ -207,8 +210,8 @@ final class DriverManager
     }
 
     /**
-     * @param class-string<Driver>|null     $driverClass
-     * @param key-of<self::DRIVER_MAP>|null $driver
+     * @param  class-string<Driver>|null  $driverClass
+     * @param  key-of<self::DRIVER_MAP>|null  $driver
      */
     private static function createDriver(?string $driver, ?string $driverClass): Driver
     {
@@ -217,15 +220,15 @@ final class DriverManager
                 throw DriverRequired::new();
             }
 
-            if (!isset(self::DRIVER_MAP[$driver])) {
+            if (! isset(self::DRIVER_MAP[$driver])) {
                 throw UnknownDriver::new($driver, array_keys(self::DRIVER_MAP));
             }
 
             $driverClass = self::DRIVER_MAP[$driver];
-        } elseif (!is_a($driverClass, Driver::class, true)) {
+        } elseif (! is_a($driverClass, Driver::class, true)) {
             throw InvalidDriverClass::new($driverClass);
         }
 
-        return new $driverClass();
+        return new $driverClass;
     }
 }

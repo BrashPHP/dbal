@@ -14,12 +14,12 @@ final class PoolFactory
 {
     public function createPool(
         Driver $driver,
-        ConnectionPoolOptions|null $connectionPoolOptions = null,
-        LoggerInterface|null $logger = null,
-        LoopInterface|null $loop = null
+        ?ConnectionPoolOptions $connectionPoolOptions = null,
+        ?LoggerInterface $logger = null,
+        ?LoopInterface $loop = null
     ): ConnectionPoolInterface {
-        $connectionPoolOptions ??= new ConnectionPoolOptions();
-        $logger ??= new NullLogger();
+        $connectionPoolOptions ??= new ConnectionPoolOptions;
+        $logger ??= new NullLogger;
         $loop ??= Loop::get();
 
         return new ConnectionPool(

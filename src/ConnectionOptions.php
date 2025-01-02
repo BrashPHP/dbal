@@ -6,8 +6,5 @@ namespace Brash\Dbal;
 
 class ConnectionOptions
 {
-
-    public function __construct(public int $keepAliveIntervalSec = 0)
-    {
-    }
+    public function __construct(public int $keepAliveIntervalSec = 0) {}
 }

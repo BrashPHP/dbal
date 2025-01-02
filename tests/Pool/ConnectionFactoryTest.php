@@ -29,7 +29,7 @@ it('creates a ConnectionItem on successful connection', function () {
         ->willReturn($mockConnection);
 
     $params = ['dbname' => 'test', 'user' => 'root', 'password' => 'password'];
-    $connectionItem = $this->connectionFactory->create($params, new ConnectionPoolOptions());
+    $connectionItem = $this->connectionFactory->create($params, new ConnectionPoolOptions);
 
     expect($connectionItem)->toBeInstanceOf(ConnectionItem::class);
 });
@@ -51,7 +51,7 @@ it('returns null and logs an alert on connection failure', function () {
         );
 
     $params = ['dbname' => 'test', 'user' => 'root', 'password' => 'password'];
-    $connectionItem = $this->connectionFactory->create($params, new ConnectionPoolOptions());
+    $connectionItem = $this->connectionFactory->create($params, new ConnectionPoolOptions);
 
     expect($connectionItem)->toBeNull();
 });
