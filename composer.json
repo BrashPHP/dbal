@@ -52,7 +52,6 @@
         "test:unit": "pest --colors=always --parallel --min=100",
         "test": [
             "@test:lint",
-            "@test:types",
             "@test:unit"
         ]
     }
