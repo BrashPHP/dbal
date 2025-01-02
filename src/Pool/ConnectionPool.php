@@ -88,7 +88,7 @@ class ConnectionPool implements ConnectionPoolInterface
 
     public function getConnectionLimit(): int
     {
-        return $this->getConnectionLimit();
+        return $this->options->maxConnections;
     }
 
     public function getConnectionsCount(): int
@@ -166,7 +166,6 @@ class ConnectionPool implements ConnectionPoolInterface
      * @return PromiseInterface<PoolItem<Connection>>
      *
      * @throws ConnectionPoolException If no connections are available to be created
-     * @throws \Error If the pool has been closed.
      */
     protected function pop(array $params): PromiseInterface
     {
@@ -207,7 +206,9 @@ class ConnectionPool implements ConnectionPoolInterface
         }
 
         // Retry until an active connection is obtained or the pool is closed.
-        return r_sleep(0.01, $this->loopInterface)->then(fn() => $this->pop($params));
+        return r_sleep(0.01, $this->loopInterface)->then(
+            fn() => $this->pop($params)
+        );
     }
 
     private function checkAvailability(): \Exception|null
@@ -245,8 +246,7 @@ class ConnectionPool implements ConnectionPoolInterface
 
         if (!$connection->isClosed()) {
             $this->idle->enqueue($connection);
-        }
-        else{
+        } else {
             $this->connections->offsetUnset($connection->item);
         }
     }

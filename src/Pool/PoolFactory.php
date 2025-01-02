@@ -23,7 +23,7 @@ final class PoolFactory
         $loop ??= Loop::get();
 
         return new ConnectionPool(
-            factory: new ConnectionFactory($driver),
+            factory: new ConnectionFactory($driver, $logger),
             loopInterface: $loop,
             loggerInterface: $logger,
             options: $connectionPoolOptions

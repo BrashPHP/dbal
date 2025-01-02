@@ -14,7 +14,7 @@ final class ConnectionItem extends PoolItem
 {
     protected function onClose(): void
     {
-        $this->item->getNativeConnection()->close();
+        $this->item->getNativeConnection()?->close();
     }
     public function validate(): bool
     {

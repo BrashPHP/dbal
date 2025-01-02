@@ -4,21 +4,30 @@ declare(strict_types=1);
 
 namespace Brash\Dbal\Pool;
 
-use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\Driver;
+use Psr\Log\LoggerInterface;
 
 class ConnectionFactory
 {
-    public function __construct(private \Doctrine\DBAL\Driver $driver)
-    {
+    public function __construct(
+        private Driver $driver,
+        private LoggerInterface $loggerInterface
+    ) {
     }
-    /**
-     *
-     * @return ?PoolItem<Connection>
-     */
-    public function create(array $params): ?PoolItem
-    {
-        $conn = $this->driver->connect($params);
 
-        return new ConnectionItem($conn);
+    public function create(array $params): ?ConnectionItem
+    {
+        try {
+            $conn = $this->driver->connect($params);
+
+            return new ConnectionItem($conn);
+        } catch (\Throwable $th) {
+            $this->loggerInterface->alert($th->getMessage(), [
+                'database_error' => $th,
+                'database_error_trace' => $th->getTrace()
+            ]);
+        
+            return null;
+        }
     }
 }
