@@ -31,4 +31,11 @@ interface ConnectionPoolInterface
     public function getIdleTimeout(): int;
 
     public function returnConnection(Connection $connection): void;
+
+    /**
+     * Close all connections in the pool. No further queries may be made after a pool is closed.
+     *
+     * Fatalistic scenario: kills every locked connections as well.
+     */
+    public function close(): void;
 }

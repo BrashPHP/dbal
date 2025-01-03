@@ -34,7 +34,7 @@ class Statement implements DoctrineStatement
     ) {}
 
     #[\Override]
-    public function bindValue($param, $value, $type = ParameterType::STRING): void
+    public function bindValue(int|string $param, mixed $value, $type = ParameterType::STRING): void
     {
         if (! in_array($type, self::PARAM_TYPES)) {
             throw UnknownParameter::new($type->name);

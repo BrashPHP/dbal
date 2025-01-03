@@ -5,11 +5,11 @@ use Brash\Dbal\DriverManager;
 require_once __DIR__.'/../vendor/autoload.php';
 
 $connectionParams = [
-    'dbname' => 'mydb',
+    'dbname' => 'mydb.db',
     'user' => 'root',
     'password' => 'secret',
     'host' => 'localhost',
-    'driver' => 'async_mysql',
+    'driver' => 'async_sqlite',
     'port' => 3306,
 ];
 

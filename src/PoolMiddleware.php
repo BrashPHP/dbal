@@ -65,4 +65,9 @@ final readonly class PoolMiddleware implements Middleware
 
         return $driver;
     }
+
+    public function close()
+    {
+        $this->poolInterface->close();
+    }
 }

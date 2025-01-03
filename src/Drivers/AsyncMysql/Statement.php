@@ -27,7 +27,11 @@ class Statement implements DoctrineStatement
 
     private array $types = [];
 
-    public function __construct(private readonly MysqlClient $connection, private readonly string $sql, private readonly ResultListenerInterface $resultListener) {}
+    public function __construct(
+        private readonly MysqlClient $connection,
+        private readonly string $sql,
+        private readonly ResultListenerInterface $resultListener
+    ) {}
 
     #[\Override]
     public function bindValue($param, $value, $type = ParameterType::STRING): void

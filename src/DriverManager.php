@@ -235,4 +235,9 @@ final class DriverManager
 
         return new $driverClass;
     }
+
+    public static function close()
+    {
+        self::$poolMiddleware?->close();
+    }
 }
