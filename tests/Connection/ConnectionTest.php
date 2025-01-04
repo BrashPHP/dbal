@@ -8,24 +8,11 @@ use Brash\Dbal\DriverManager;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception\TableNotFoundException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-use React\EventLoop\Loop;
 use Tests\Connection\Support\InfrastructureSupport;
 
 pest()->group('integration_tests');
 
 const TABLE = 'test';
-
-beforeAll(function () {
-    if (! defined('SIGINT')) {
-        fwrite(STDERR, 'Not supported on your platform (ext-pcntl missing or Windows?)'.PHP_EOL);
-        exit(1);
-    }
-    $loop = Loop::get();
-    $loop->addSignal(SIGINT, function () use ($loop) {
-        $loop->stop();
-        exit;
-    });
-});
 
 beforeEach(function () {
     $this->sut = DriverManager::getConnection(ConnectionParams::sqliteParams());
@@ -43,7 +30,6 @@ afterEach(function () {
 
 afterAll(function () {
     DriverManager::close();
-    Loop::stop();
 });
 
 test('should compare query builder', function () {

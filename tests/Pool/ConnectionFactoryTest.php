@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Pool;
 
+use Brash\Dbal\AsyncConnectionInterface;
 use Brash\Dbal\Pool\ConnectionFactory;
 use Brash\Dbal\Pool\ConnectionItem;
 use Brash\Dbal\Pool\ConnectionPoolOptions;
 use Doctrine\DBAL\Driver;
-use Doctrine\DBAL\Driver\Connection;
 use Psr\Log\LoggerInterface;
 
 beforeEach(function () {
@@ -21,7 +21,7 @@ beforeEach(function () {
 });
 
 it('creates a ConnectionItem on successful connection', function () {
-    $mockConnection = $this->createMock(Connection::class);
+    $mockConnection = $this->createMock(AsyncConnectionInterface::class);
 
     $this->mockDriver
         ->expects($this->once())

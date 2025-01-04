@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Pool;
 
+use Brash\Dbal\AsyncConnectionInterface;
 use Brash\Dbal\Pool\ConnectionFactory;
 use Brash\Dbal\Pool\ConnectionItem;
 use Brash\Dbal\Pool\ConnectionPool;
 use Brash\Dbal\Pool\ConnectionPoolException;
 use Brash\Dbal\Pool\ConnectionPoolOptions;
-use Doctrine\DBAL\Driver\Connection;
 use Mockery\MockInterface;
 use Psr\Log\NullLogger;
 use React\EventLoop\Loop;
@@ -18,8 +18,8 @@ use React\EventLoop\Timer\Timer;
 
 function generateInput(): ConnectionItem
 {
-    /** @var Connection|MockInterface */
-    $mockConnection = spy(Connection::class);
+    /** @var \Brash\Dbal\AsyncConnectionInterface|MockInterface */
+    $mockConnection = spy(AsyncConnectionInterface::class);
     $mockConnection->shouldReceive('getNativeConnection')->withAnyArgs();
 
     return new ConnectionItem($mockConnection, new ConnectionPoolOptions);
@@ -71,7 +71,7 @@ afterEach(function () {
 it('should receive valid connection', function () {
     $poolItem = $this->sut->extractConnection([]);
 
-    expect($poolItem)->toBeInstanceOf(Connection::class);
+    expect($poolItem)->toBeInstanceOf(AsyncConnectionInterface::class);
 });
 
 it('should exhaust get connection and throw', function () {

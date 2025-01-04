@@ -4,21 +4,22 @@ declare(strict_types=1);
 
 namespace Brash\Dbal\Pool;
 
+use Brash\Dbal\AsyncConnectionInterface;
 use Doctrine\DBAL\Driver\Connection;
 use React\EventLoop\Loop;
 use React\EventLoop\TimerInterface;
 
 /**
- * @template-extends PoolItem<Connection>
+ * @template-extends PoolItem<AsyncConnectionInterface>
  *
- * @extends parent<Connection>
+ * @extends parent<AsyncConnectionInterface>
  */
 final class ConnectionItem extends PoolItem
 {
     private ?TimerInterface $keepAliveTimer = null;
 
     public function __construct(
-        Connection $connection,
+        AsyncConnectionInterface $connection,
         ConnectionPoolOptions $connectionPoolOptions
     ) {
         parent::__construct($connection);
@@ -38,7 +39,7 @@ final class ConnectionItem extends PoolItem
             Loop::get()->cancelTimer($this->keepAliveTimer);
             $this->keepAliveTimer = null;
         }
-        $this->item->getNativeConnection()?->close();
+        $this->item->close();
     }
 
     public function validate(): bool

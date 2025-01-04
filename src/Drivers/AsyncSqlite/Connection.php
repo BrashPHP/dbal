@@ -2,6 +2,7 @@
 
 namespace Brash\Dbal\Drivers\AsyncSqlite;
 
+use Brash\Dbal\AsyncConnectionInterface;
 use Brash\Dbal\DoctrineException;
 use Brash\Dbal\Observer\CompletionEmitter;
 use Brash\Dbal\Observer\ResultListenerInterface;
@@ -9,7 +10,6 @@ use Brash\Dbal\Observer\SqlResult;
 use Clue\React\SQLite\DatabaseInterface;
 use Doctrine\DBAL\Driver\API\ExceptionConverter as ExceptionConverterInterface;
 use Doctrine\DBAL\Driver\API\SQLite\ExceptionConverter;
-use Doctrine\DBAL\Driver\Connection as DoctrineConnection;
 use Doctrine\DBAL\Driver\Result as DoctrineResult;
 use Doctrine\DBAL\Driver\Statement as DoctrineStatement;
 use Doctrine\DBAL\ParameterType;
@@ -17,7 +17,7 @@ use Doctrine\DBAL\Query;
 
 use function React\Async\await;
 
-class Connection implements DoctrineConnection, ResultListenerInterface
+class Connection implements AsyncConnectionInterface, ResultListenerInterface
 {
     private ?int $lastInsertId = null;
 
@@ -152,6 +152,7 @@ class Connection implements DoctrineConnection, ResultListenerInterface
         return $this->connection;
     }
 
+    #[\Override]
     public function close(): void
     {
         $this->connection->close();
