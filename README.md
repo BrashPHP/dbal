@@ -25,9 +25,9 @@ Using this non-blocking approach, you release your processes from the burden of 
 
 You may find concrete examples (and working!) in `examples` directory, but this package does pretty much what Doctrine DBAL does, since it is just a way to extend Doctrine DBAL's already useful and knwon qualities. The additions are transparent, but basically:
 
-- A connection pool
-- Async drivers
-- A custom Driver Manager
+-   A connection pool
+-   Async drivers
+-   A custom Driver Manager
 
 It goes like this ;)
 
@@ -72,6 +72,23 @@ DriverManager::setPoolOptions(new ConnectionPoolOptions(
 DriverManager::getConnection([...]);
 
 ```
+
+## Driver Options
+
+Choose between MySQL, MariaDB, Postgres and SQLite, just passing the correct driver in your `Connection Params`.
+
+```php
+    'async_postgres' => AsyncPostgresDriver::class,
+    'async_mysql' => AsyncMysqlDriver::class,
+    'async_sqlite' => AsyncSqliteDriver::class,
+```
+
+## Under the hood
+
+Internally, the:
+Postgres Async Driver is an implementation on top of Voryx/PgAsync;
+SQLite Async Driver is an implementation on top of Clue/reactphp-sqlite, and
+MySQL/MariaDB is an implementation on top of react/mysql.
 
 > **Requires [PHP 8.3+](https://php.net/releases/)**
 
