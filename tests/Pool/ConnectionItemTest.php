@@ -7,7 +7,6 @@ namespace Tests\Pool;
 use Brash\Dbal\AsyncConnectionInterface;
 use Brash\Dbal\Pool\ConnectionItem;
 use Brash\Dbal\Pool\ConnectionPoolOptions;
-use Doctrine\DBAL\Driver\Connection;
 
 test('Should assert raw connection object is received', function () {
     $obj = new \stdClass;
