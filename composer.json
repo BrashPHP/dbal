@@ -1,6 +1,6 @@
 {
     "name": "brash/dbal",
-    "description": "A DBAL based on Doctrine DBAL and Drift/dbal",
+    "description": "An Async Database Abstract Layer based on Doctrine DBAL",
     "keywords": ["php", "dbal", "package", "reactphp", "async"],
     "license": "MIT",
     "authors": [
